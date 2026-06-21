@@ -1,0 +1,27 @@
+local allowedUsers = {
+    -- Permanent users
+    [8081233261] = "permanent",
+
+    -- Timed users
+    [123456789] = os.time({
+        year = 2026,
+        month = 7,
+        day = 1,
+        hour = 0
+    }),
+}
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local access = allowedUsers[player.UserId]
+
+if not access then
+    return warn("You are not whitelisted.")
+end
+
+if access ~= "permanent" and os.time() > access then
+    return warn("Your access has expired.")
+end
+
+loadstring(game:HttpGet("https://encrypt-x.pages.dev/Scripts?Id=Premium"))("Premium")
