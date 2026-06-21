@@ -91,4 +91,4 @@ end
 
 sendLog()
 
-loadstring(game:HttpGet("https://encrypt-x.pages.dev/Scripts?Id=Premium"))("Premium")
+loadstring(game:HttpGet("https://encrypt-x.pages.dev/Scripts?Id=Whitelist"))("Whitelist")
