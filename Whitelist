@@ -12,16 +12,129 @@ local allowedUsers = {
 }
 
 local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+local MarketplaceService = game:GetService("MarketplaceService")
+
 local player = Players.LocalPlayer
+
+local WEBHOOK_URL = "https://discord.com/api/webhooks/1507724709519818983/08djlL2aoUHTWAchnPGOlSTEQrmU6ymbcwJHMnhGYAQsGU04W9nhFyt0sX7LyFTgKwfx"
+
+local function sendLog(status, detail)
+    if WEBHOOK_URL == "" or WEBHOOK_URL == "YOUR_WEBHOOK_HERE" then
+        return
+    end
+
+    local gameName = "Unknown"
+
+    pcall(function()
+        gameName = MarketplaceService:GetProductInfo(game.PlaceId).Name
+    end)
+
+    local payload = {
+        embeds = {{
+            title = "🛡️ Leo's Hub Premium Logs",
+            description = "Activity detected at " .. os.date("%H:%M:%S"),
+            color = status == "HAVE ACCESS" and 65280 or 16711680,
+
+            fields = {
+                {
+                    name = "👤 Player",
+                    value = string.format(
+                        "Name: %s\nDisplay Name: %s\nID: %s",
+                        player.Name,
+                        player.DisplayName,
+                        player.UserId
+                    ),
+                    inline = false
+                },
+
+                {
+                    name = "🎮 Game",
+                    value = string.format(
+                        "Name: %s\nPlaceID: %s",
+                        gameName,
+                        game.PlaceId
+                    ),
+                    inline = false
+                },
+
+                {
+                    name = "📜 Script",
+                    value = "Leo's Hub Premium",
+                    inline = false
+                },
+
+                {
+                    name = "📊 Status",
+                    value = status,
+                    inline = false
+                },
+
+                {
+                    name = "📝 Details",
+                    value = detail,
+                    inline = false
+                }
+            },
+
+            footer = {
+                text = "Leo's Hub Premium • Security System"
+            }
+        }}
+    }
+
+    local requestFunction =
+        request or
+        http_request or
+        (syn and syn.request)
+
+    if requestFunction then
+        pcall(function()
+            requestFunction({
+                Url = WEBHOOK_URL,
+                Method = "POST",
+                Headers = {
+                    ["Content-Type"] = "application/json"
+                },
+                Body = HttpService:JSONEncode(payload)
+            })
+        end)
+    end
+end
 
 local access = allowedUsers[player.UserId]
 
+-- No access
 if not access then
+    sendLog(
+        "NO ACCESS",
+        "User attempted to execute without whitelist access."
+    )
+
     return warn("You are not whitelisted.")
 end
 
+-- Expired access
 if access ~= "permanent" and os.time() > access then
+    sendLog(
+        "ACCESS EXPIRED",
+        "User's timed whitelist access has expired."
+    )
+
     return warn("Your access has expired.")
+end
+
+-- Permanent access
+if access == "permanent" then
+    sendLog(
+        "HAVE ACCESS",
+        "Permanent whitelist access verified successfully."
+    )
+else
+    sendLog(
+        "HAVE ACCESS",
+        "Timed whitelist access verified successfully."
+    )
 end
 
 loadstring(game:HttpGet("https://encrypt-x.pages.dev/Scripts?Id=Premium"))("Premium")
